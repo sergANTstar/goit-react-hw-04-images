@@ -1,33 +1,31 @@
-import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import css from './SearchBar.module.css';
 import { ReactComponent as SearchIcon } from './search.svg';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import { useState } from 'react';
 
-export class SearchBar extends Component {
-  state = { searchQuery: '' };
+export const SearchBar = props => {
 
-  handleChange = e => {
-    this.setState({ searchQuery: e.currentTarget.value });
+  const [query, searchQuery] = useState('');
+
+  const handleChange = e => {
+    const {value} = e.currentTarget;
+     searchQuery(value);
   };
 
-  handleSubmit = e => {
+  const handleSubmit = e => {
     e.preventDefault();
-    const query = this.state.searchQuery;
-
-    if (query.trim() === '') {
+  
+      if (query.trim() === '') {
       return Notify.warning('Please, enter a query!');
-    }
+    };
+    props.onSubmit(query);
+    searchQuery ('');
+  }
 
-    this.props.onSubmit(query);
-    this.setState({searchQuery: ""})
-    
-  };
-
-  render() {
     return (
       <header className={css.searchBar}>
-        <form className={css.searchBar__form} onSubmit={this.handleSubmit}>
+        <form className={css.searchBar__form} onSubmit={handleSubmit}>
           <button type="submit" className={css.searchBar__button}>
             <SearchIcon width="30" height="30" />
             <span className={css.searchBar__label}>Search</span>
@@ -38,14 +36,14 @@ export class SearchBar extends Component {
             autoComplete="off"
             autoFocus
             placeholder="Search images..."
-            value={this.state.searchQuery}
-            onChange={this.handleChange}
+            value={query}
+            onChange={handleChange}
           />
         </form>
       </header>
     );
   }
-}
+
 
 SearchBar.propTypes = {
   onSubmit: PropTypes.func.isRequired,
