@@ -78,6 +78,8 @@ function getImg() {
     setLargeImageURL(largeImageURL);
     toggleModal()
   };
+
+ 
   
 
     return (

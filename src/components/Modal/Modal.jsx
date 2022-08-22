@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 
 const modalRoot = document.querySelector('#root');
 
-export const Modal =({largeImage, onClose }) =>  {   
+export const Modal =({largeImage, onClose, alt }) =>  {   
 
   const backdropClick = e => {
     if (e.currentTarget === e.target) {
@@ -32,7 +32,7 @@ export const Modal =({largeImage, onClose }) =>  {
         <div className={css.modal__block}>
           <img 
             src={largeImage}
-            alt=""
+            alt={alt}
             className={css.modal__img}
           />
         </div>
