@@ -1,108 +1,99 @@
-import React, { Component } from 'react';
+
 import css from './App.module.css';
 import {SearchBar} from './SearchBar/SearchBar';
 import {ImageGallery} from './Gallery/ImageGallery';
-import imagesApi from '../services/API';
+import fetchImages from '../services/API';
 import {Button} from './Button/Button';
 import {Modal} from './Modal/Modal';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import { Loader } from './Loader/Loader';
 
-export class App extends Component {
-  state = {
-    img: [],
-    searchQuery: '',
-    largeImageURL: '',
-    currentPage: 1,
-    total: 0,
-    showModal: false,
-    loading: false,
-    error: null,
-  };
+import { useState, useEffect } from 'react';
 
-  componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.searchQuery !== this.state.searchQuery ||
-      prevState.currentPage !== this.state.currentPage
-    ) {
-      this.fetchImages();
+export const App = () => {
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [img, setImg] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [totalHits, setTotalHits] = useState(null)
+  const [error, setError] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [largeImageURL, setLargeImageURL] = useState(null);
+
+
+  useEffect(() => {
+    if (!searchQuery) {
+      return;
     }
-  }
 
-  handleSubmit = query => {
-    this.setState({
-      img: [],
-      searchQuery: query,
-      largeImageURL: '',
-      currentPage: 1,
-      total: 0,
-      showModal: false,
-      loading: true,
-      error: null,
-    });
+    setLoading (true)
+
+if (currentPage === 1) {
+  setImg([]);
+}
+
+
+getImg();
+
+function getImg() {
+  fetchImages(searchQuery, currentPage )
+    .then(response => {
+      setImg(prevImages => [...prevImages, ...response.hits]);
+      setLoading(false);
+      setTotalHits(response.totalHits);
+
+      if(response.hits.length === 0) {
+        setLoading(false);
+        setError(Notify.warning('Sorry, nothing was found :)'))
+      }
+    })
+    .catch(error => {
+      setError(error);
+      setLoading(false)
+    })
+    }
+
+  }, [currentPage, searchQuery])
+
+
+  
+
+  const handleSubmit = query => {
+    setSearchQuery(query);
+    setImg([]);
+    setCurrentPage(1);
   };
 
-  fetchImages = () => {
-    const { currentPage, searchQuery } = this.state;
-    const options = { currentPage, searchQuery };
-
-    
-
-    imagesApi(options)
-      .then(({ hits, totalHits }) => {
-
-        if(hits.length === 0 ){Notify.warning('Sorry, nothing was found :)')}
-
-        const newImages = hits.map(({ id, webformatURL, largeImageURL }) => {
-          return { id, webformatURL, largeImageURL };
-        });
-
-        this.setState(prevState => ({
-          img: [...prevState.img, ...newImages],
-          total: totalHits,
-        }));
-      })
-      .catch(error => this.setState({ error }))
-      .finally(this.setState({ loading: false }));
+  const loadMore = () => {
+    setCurrentPage(page => page + 1)
   };
 
-  loadMore = () => {
-    this.setState(prevState => ({ currentPage: prevState.currentPage + 1 }));
+  const toggleModal = () => {
+    setShowModal(showModal =>!showModal);
+   
   };
 
-  toggleModal = () => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-    }));
+  const openModal = largeImageURL => {
+    setLargeImageURL(largeImageURL);
+    toggleModal()
   };
+  
 
-  openModal = searchId => {
-    const image = this.state.img.find(image => image.id === searchId);
-    this.setState({ largeImageURL: image.largeImageURL });
-    this.toggleModal();
-  };
-
-  render() {
-    const { img, loading, showModal, error, largeImageURL } = this.state;
     return (
       <div className={css.App}>
-        {error && Notify.failure('Sorry, there is some error')}
-        <SearchBar onSubmit={this.handleSubmit} />
-        {img.length > 0 && (
-          <ImageGallery img={img} openModal={this.openModal} />
+        <SearchBar onSubmit={handleSubmit} />
+        {img.length > 0 && !error && (
+          <ImageGallery img={img} openModal={openModal} />
         )}
-        {loading && <Loader/>}
+        {loading === true && <Loader/>}
         {img.length > 0 &&
-          !loading && 
-          img.length !== this.state.total && (
-            <Button onClick={this.loadMore} />
+          loading === false && img.length !== totalHits && (
+            <Button onClick={loadMore} />
           )}
         {showModal && (
-          <Modal onClose={this.toggleModal} largeImage={largeImageURL} />
+          <Modal onClose={toggleModal} largeImage={largeImageURL} />
         )}
       </div>
     );
-  }
 }
-
-export default App;

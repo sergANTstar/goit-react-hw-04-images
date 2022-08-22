@@ -4,13 +4,12 @@ import { ReactComponent as SearchIcon } from './search.svg';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import { useState } from 'react';
 
-export const SearchBar = props => {
+export const SearchBar = ({onSubmit}) => {
 
-  const [query, searchQuery] = useState('');
+  const [query, setQuery] = useState('');
 
   const handleChange = e => {
-    const {value} = e.currentTarget;
-     searchQuery(value);
+   setQuery(e.target.value.toLowerCase().trim())
   };
 
   const handleSubmit = e => {
@@ -19,8 +18,8 @@ export const SearchBar = props => {
       if (query.trim() === '') {
       return Notify.warning('Please, enter a query!');
     };
-    props.onSubmit(query);
-    searchQuery ('');
+    onSubmit(query);
+    setQuery ('');
   }
 
     return (

@@ -1,13 +1,14 @@
 import css from './Modal.module.css';
 import PropTypes from 'prop-types';
+import { createPortal } from 'react-dom';
 import { useEffect } from 'react';
 
 const modalRoot = document.querySelector('#root');
 
-export const Modal =({largeImage, onClose, tags }) =>  {
-  
+export const Modal =({largeImage, onClose }) =>  {   
+
   const backdropClick = e => {
-    if (e.currentTarget !== e.target) {
+    if (e.currentTarget === e.target) {
       onClose();
     }
   }
@@ -26,12 +27,12 @@ export const Modal =({largeImage, onClose, tags }) =>  {
   });
 
 
-    return (
+    return createPortal (
       <div className={css.modal} onClick={backdropClick}>
         <div className={css.modal__block}>
           <img 
             src={largeImage}
-            alt={tags} 
+            alt=""
             className={css.modal__img}
           />
         </div>
